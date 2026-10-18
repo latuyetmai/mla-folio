@@ -1,0 +1,38 @@
+[project]
+name = "wikipedia-drilling-assistant"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "mai.la@berkeley.edu"}
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "langgraph (>=1.2.15,<2.0.0)",
+    "langchain (>=1.4.6,<2.0.0)",
+    "databricks-langchain[memory] (>=0.21.0,<0.22.0)",
+    "uv (>=0.13.1,<0.14.0)",
+    "databricks-agents (>=1.12.0,<2.0.0)",
+    "mlflow-skinny[databricks] (>=3.17.1,<4.0.0)",
+    "chromadb (>=1.5.9,<2.0.0)",
+    "sentence-transformers (>=6.1.0,<7.0.0)",
+    "langchain-huggingface (>=1.2.3,<2.0.0)",
+    "langchain-chroma (>=1.1.0,<2.0.0)",
+    "wikipedia (>=1.4.0,<2.0.0)",
+    "faiss-cpu (>=1.15.1,<2.0.0)",
+    "ipykernel (>=7.4.0,<8.0.0)",
+    "wikipedia-api (>=0.16.0,<0.17.0)",
+    "databricks-ai-search (>=0.79,<0.80)",
+    "langchain-text-splitters (>=1.1.3,<2.0.0)"
+]
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.17.0,<0.18.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "ipykernel (>=7.4.0,<8.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
