@@ -9,7 +9,7 @@ A RAG assistant for drilling, drilling equipment, and geology questions, built w
 2. Split pages into chunks of up to 500 words with a target 50-word overlap, then create a Delta Sync Vector Search index.
 3. For each question, the retrieval tool performs three steps:
    - **Topic prefilter:** Classify the question into allowed topics using `TopicSelection`; discard unknown topics.
-   - **Filtered retrieval:** Apply the topic filter to hybrid Vector Search, retrieve 20 results, rerank by summary, and retain 10.
+   - **Filtered retrieval:** Apply the topic filter to hybrid Vector Search, retrieve 30 results, rerank by summary, and retain 20.
    - **Relevance post-filter:** Classify each chunk concurrently and remove irrelevant context before returning documents to the agent.
 4. The agent uses the evidence to answer with citations, or explicitly labels general-knowledge answers when evidence is unavailable.
 
@@ -18,13 +18,11 @@ A RAG assistant for drilling, drilling equipment, and geology questions, built w
 Use Python 3.12 and Poetry. Data preparation requires a Databricks Spark runtime with Delta support. You also need access to a catalog/schema, Vector Search endpoint, Lakebase instance, and the model endpoints configured in `src/config.py`.
 
 ```bash
-git clone https://github.com/latuyetmai/wikipedia-drilling-assistant.git
 cd wikipedia-drilling-assistant
 poetry install --no-root --with dev
-cp .env.example .env
 ```
 
-Edit `.env` with your own values:
+Create an `.env` or copy from `.env.example` with your own values:
 
 - `DATABRICKS_HOST`: workspace URL.
 - `DATABRICKS_TOKEN`, or `DATABRICKS_CLIENT_ID` and `DATABRICKS_CLIENT_SECRET` for service-principal authentication. Remove unused placeholder credentials.
@@ -32,7 +30,7 @@ Edit `.env` with your own values:
 - `LAKEBASE_INSTANCE_NAME` and `LAKEBASE_HOST`: an existing Lakebase instance and its matching hostname.
 - `MLFLOW_TRACKING_URI=databricks` and `MLFLOW_EXPERIMENT_ID`: for notebook tracing.
 
-Review the LLM and embedding endpoints in `src/config.py` for your workspace. Keep credentials out of version control. OpenAI and Anthropic keys in the example file are not required by the current Databricks model configuration.
+Review the LLM and embedding endpoints in `src/config.py` for your workspace. Keep credentials out of version control.
 
 ## Build the data and index
 
@@ -55,7 +53,7 @@ This creates `{CATALOG}.{SCHEMA}.wiki_pages`, `wiki_pages_chunks`, and `wiki_pag
 
 ## Run the agent
 
-Open `01_agentic_wikipedia_aimpoint_interview.ipynb` and run the custom cells under **a) GenAI Application Development** after preparing the index. Select the project environment when running locally; the earlier starter cells are a separate FAISS example.
+Open an ipynb notebook and run the custom cells to invoke the agent and stream follow-up questions.
 
 The compiled agent can also be imported directly from the repository root:
 
@@ -69,7 +67,6 @@ from src.wiki_agent import wiki_agent
 
 config = {
     "configurable": {"thread_id": f"wiki-{uuid4().hex}"},
-    "recursion_limit": 100,
 }
 response = wiki_agent.invoke(
     {"messages": [{"role": "user", "content": "Tell me about horizontal drilling."}]},
@@ -89,7 +86,7 @@ for update in wiki_agent.stream(
 
 Importing the `wiki_agent` export initializes the model clients and Lakebase saver. Use a new `thread_id` for each conversation. The notebook adds `src/` to its Python path and uses the equivalent `from wiki_agent import wiki_agent` import.
 
-For MLflow traces, call `mlflow.langchain.autolog()` before invocation. The exported graph supports invocation and streaming for additional serving layers; an MCP server or frontend is not included in this workflow.
+For MLflow traces, call `mlflow.langchain.autolog()` before invocation. The exported graph supports invocation and streaming for additional serving layers.
 
 ## Test
 
@@ -117,6 +114,4 @@ Live runs require valid workspace credentials and an initialized index, and use 
 | `src/wiki_agent.py` | Retrieval chain and ReAct agent factory/export |
 | `src/lakebase_checkpoint.py` | Persistent checkpoint storage |
 | `skills/wiki_agent_prompt.md` | Agent instructions and citation rules |
-| `01_agentic_wikipedia_aimpoint_interview.ipynb` | Workflow explanation and runnable examples |
 | `tests/` | Retrieval, agent, configuration, and checkpoint tests |
-| `my_notes.md` | Development steps and prompts |
